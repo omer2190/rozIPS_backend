@@ -18,9 +18,11 @@ import {
 } from "../middlewares/auth.middleware";
 // import upload from "../middlewares/upload.middleware";
 
+import formData from "express-form-data";
+
 const router = Router();
 
-router.post("/", auth, isMarketer, createLead);
+router.post("/", auth, isMarketer, formData.parse(), createLead);
 router.get("/mine", auth, isMarketer, getMyLeads);
 router.get("/all", auth, isManager, getAllLeads);
 router.put("/:id/assign", auth, isInstaller, assignLead);
