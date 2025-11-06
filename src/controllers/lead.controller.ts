@@ -13,15 +13,13 @@ export const createLead = async (req: AuthRequest, res: Response) => {
   try {
     const existingLead = await Lead.findOne({ phone });
     if (existingLead) {
-      return res
-        .status(400)
-        .json({ msg: "Lead with this phone number already exists." });
+      return res.status(400).json({ message: "هذا الرقم موجود بالفعل." });
     }
     const homePhotoURL = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     if (homePhotoURL == undefined) {
       console.log("Home photo is required.: ", homePhotoURL);
-      return res.status(400).json({ msg: "Home photo is required." });
+      return res.status(400).json({ message: "صورة المنزل مطلوبة." });
     }
 
     const newLead = new Lead({
@@ -41,7 +39,7 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     res.json(lead);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -62,7 +60,7 @@ export const getMyLeads = async (req: AuthRequest, res: Response) => {
     res.json(leads);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -100,7 +98,7 @@ export const getAllLeads = async (req: AuthRequest, res: Response) => {
     res.json(leads);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -112,12 +110,12 @@ export const assignLead = async (req: AuthRequest, res: Response) => {
     if (!installer) {
       return res
         .status(400)
-        .json({ msg: "Invalid installer.", installer: installer });
+        .json({ message: "مركب غير صالح.", installer: installer });
     }
 
     const lead = await Lead.findById(req.params.id);
     if (!lead) {
-      return res.status(404).json({ msg: "Lead not found." });
+      return res.status(404).json({ message: "العميل غير موجود." });
     }
 
     lead.assignedTo = installerId;
@@ -136,7 +134,7 @@ export const assignLead = async (req: AuthRequest, res: Response) => {
     res.json(lead);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -149,7 +147,7 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
   try {
     const lead = await Lead.findById(req.params.id);
     if (!lead) {
-      return res.status(404).json({ msg: "Lead not found." });
+      return res.status(404).json({ message: "العميل غير موجود." });
     }
 
     lead.status = status;
@@ -166,7 +164,7 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
     res.json(lead);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -186,7 +184,7 @@ export const getInstallerTasks = async (req: AuthRequest, res: Response) => {
     res.json(leads);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -229,7 +227,7 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
     res.json(lead);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -246,14 +244,14 @@ export const getMyTasks = async (req: AuthRequest, res: Response) => {
     res.json(leads);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 export const getLeadCounts = async (req: AuthRequest, res: Response) => {
   const user = req.user;
   try {
     if (!user) {
-      return res.status(401).json({ msg: "Unauthorized" });
+      return res.status(401).json({ message: "غير مصرح" });
     }
 
     let filter: any = {};
@@ -267,7 +265,7 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
       // Installers can see counts for leads assigned to them.
       filter.assignedTo = user.id;
     } else {
-      return res.status(403).json({ msg: "Access denied." });
+      return res.status(403).json({ message: "تم رفض الوصول." });
     }
 
     const totalLeads = await Lead.countDocuments(filter);
@@ -297,6 +295,6 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
     });
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };

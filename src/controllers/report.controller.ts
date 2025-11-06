@@ -124,7 +124,7 @@ export const getMarketerPerformance = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -231,6 +231,6 @@ export const getEmployeePerformance = async (req: Request, res: Response) => {
     res.json(employeePerformance);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };

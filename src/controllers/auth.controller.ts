@@ -9,12 +9,12 @@ export const login = async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ message: "بيانات الاعتماد غير صالحة" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password as string);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(400).json({ message: "كلمة المرور غير صحيحة" });
     }
 
     const payload = {
@@ -31,7 +31,7 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -41,12 +41,12 @@ export const getMy = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ message: "المستخدم غير موجود" });
     }
 
     res.json({ user });
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };

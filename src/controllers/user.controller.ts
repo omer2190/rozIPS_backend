@@ -13,7 +13,7 @@ export const createUser = async (req: Request, res: Response) => {
     if (user) {
       return res
         .status(400)
-        .json({ msg: "User with this username or phone already exists." });
+        .json({ message: "يوجد مستخدم بهذا الاسم أو الهاتف بالفعل." });
     }
 
     user = new User({
@@ -25,10 +25,10 @@ export const createUser = async (req: Request, res: Response) => {
     });
 
     await user.save();
-    res.status(201).json({ msg: "User created successfully." });
+    res.status(201).json({ message: "تم إنشاء المستخدم بنجاح." });
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -48,7 +48,7 @@ export const getUsers = async (req: Request, res: Response) => {
     res.json(users);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send({ message: "خطأ في الخادم" });
   }
 };
 
@@ -59,7 +59,7 @@ export const getUserStats = async (req: Request, res: Response) => {
     console.log("userId: ", userId);
     const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ message: "المستخدم غير موجود" });
     }
     // جلب احصائية اضافية حسب الحاجة
     // جلب عدد العملاء الذين تم اضافتهم من قبل هذا المستخدم ويجب ان تكون يوميا واسبوعيا وشهرية والكليلة
@@ -83,8 +83,8 @@ export const getUserStats = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send({
-      msg: "Server Error",
-      message: err.message,
+      message: "خطأ في الخادم",
+      details: err.message,
     });
   }
 };
