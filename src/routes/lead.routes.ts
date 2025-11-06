@@ -16,11 +16,11 @@ import {
   isMarketer,
   isInstaller,
 } from "../middlewares/auth.middleware";
-import upload from "../middlewares/upload.middleware";
+// import upload from "../middlewares/upload.middleware";
 
 const router = Router();
 
-router.post("/", auth, isMarketer, upload.single("Photo"), createLead);
+router.post("/", auth, isMarketer, createLead);
 router.get("/mine", auth, isMarketer, getMyLeads);
 router.get("/all", auth, isManager, getAllLeads);
 router.put("/:id/assign", auth, isInstaller, assignLead);
