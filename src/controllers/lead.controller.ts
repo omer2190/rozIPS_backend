@@ -15,12 +15,12 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     if (existingLead) {
       return res.status(400).json({ message: "هذا الرقم موجود بالفعل." });
     }
-    const homePhotoURL = req.file ? `/uploads/${req.file.filename}` : undefined;
+    const homePhotoURL = req.file ? `/uploads/${req.file.filename}` : "hhhh";
 
-    if (homePhotoURL == undefined) {
-      console.log("Home photo is required.: ", homePhotoURL);
-      return res.status(400).json({ message: "صورة المنزل مطلوبة." });
-    }
+    // if (homePhotoURL == undefined) {
+    //   console.log("Home photo is required.: ", homePhotoURL);
+    //   return res.status(400).json({ message: "صورة المنزل مطلوبة." });
+    // }
 
     const newLead = new Lead({
       customerName,
