@@ -9,11 +9,11 @@ export const createUser = async (req: Request, res: Response) => {
   const { username, password, name, role, phone } = req.body;
 
   try {
-    let user = await User.findOne({ $or: [{ username }, { phone }] });
+    let user = await User.findOne({ $or: [{ username }] });
     if (user) {
       return res
         .status(400)
-        .json({ message: "يوجد مستخدم بهذا الاسم أو الهاتف بالفعل." });
+        .json({ message: "يوجد مستخدم بهذا الاسم بالفعل." });
     }
 
     user = new User({
