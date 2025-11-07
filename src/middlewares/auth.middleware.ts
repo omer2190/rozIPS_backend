@@ -14,7 +14,7 @@ export const auth = async (
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    return res.status(401).json({ msg: "No token, authorization denied" });
+    return res.status(401).json({ message: "لا يوجد رمز، الوصول مرفوض" });
   }
 
   try {
@@ -23,12 +23,12 @@ export const auth = async (
     };
     const user = await User.findById(decoded.id).select("-password");
     if (!user) {
-      return res.status(401).json({ msg: "User not found" });
+      return res.status(401).json({ message: "المستخدم غير موجود" });
     }
     req.user = user;
     next();
   } catch (err) {
-    res.status(401).json({ msg: "Token is not valid" });
+    res.status(401).json({ message: "الرمز غير صالح" });
   }
 };
 
@@ -40,7 +40,7 @@ export const isManager = (
   if (req.user && req.user.role === "manager") {
     next();
   } else {
-    res.status(403).json({ msg: "Access denied. Manager role required." });
+    res.status(403).json({ message: "الوصول مرفوض. يتطلب دور المدير." });
   }
 };
 
@@ -52,7 +52,7 @@ export const isMarketer = (
   if (req.user && req.user.role === "marketer") {
     next();
   } else {
-    res.status(403).json({ msg: "Access denied. Marketer role required." });
+    res.status(403).json({ message: "الوصول مرفوض. يتطلب دور المسوق." });
   }
 };
 
@@ -64,6 +64,6 @@ export const isInstaller = (
   if (req.user && req.user.role === "installer") {
     next();
   } else {
-    res.status(403).json({ msg: "Access denied. Installer role required." });
+    res.status(403).json({ message: "الوصول مرفوض. يتطلب دور الفني." });
   }
 };

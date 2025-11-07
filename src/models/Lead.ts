@@ -4,6 +4,7 @@ const InstallationDetailsSchema = new Schema({
   cabinet: { type: String },
   port: { type: String },
   serial: { type: String },
+  poleNumber: { type: String },
   username: { type: String },
   password: { type: String },
   installPhotoURL: { type: String },
@@ -29,8 +30,17 @@ const LeadSchema = new Schema(
     phone: { type: String, required: true, unique: true, index: true },
     addressText: { type: String, required: true },
     location: {
-      latitude: { type: Number },
-      longitude: { type: Number },
+      type: {
+        latitude: {
+          type: Number,
+          required: true, // ⬅️ هذا هو سبب المشكلة
+        },
+        longitude: {
+          type: Number,
+          required: true, // ⬅️ هذا هو سبب المشكلة
+        },
+      },
+      required: true, // قد يكون هذا الحقل مطلوبًا أيضاً
     },
     homePhotoURL: { type: String },
     notes: { type: String },
@@ -60,7 +70,19 @@ export interface ILead extends Document {
   motherName: string;
   phone: string;
   addressText: string;
-  location?: { latitude: number; longitude: number };
+  location: {
+    type: {
+      latitude: {
+        type: Number;
+        required: true; // ⬅️ هذا هو سبب المشكلة
+      };
+      longitude: {
+        type: Number;
+        required: true; // ⬅️ هذا هو سبب المشكلة
+      };
+    };
+    required: true; // قد يكون هذا الحقل مطلوبًا أيضاً
+  };
   homePhotoURL?: string;
   notes?: string;
   status:
@@ -76,6 +98,7 @@ export interface ILead extends Document {
   installationDetails?: {
     cabinet?: string;
     port?: string;
+    poleNumber?: string;
     serial?: string;
     username?: string;
     password?: string;

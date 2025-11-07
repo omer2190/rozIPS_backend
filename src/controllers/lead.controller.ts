@@ -22,12 +22,39 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     //   return res.status(400).json({ message: "صورة المنزل مطلوبة." });
     // }
 
+    let parsedLocation: any;
+    if (typeof location === "string") {
+      try {
+        parsedLocation = JSON.parse(location); // ⬅️ تحليل السلسلة إلى كائن
+      } catch (e) {
+        return res
+          .status(400)
+          .json({ message: "صيغة الموقع المرسلة غير صحيحة (ليست JSON)." });
+      }
+    } else {
+      parsedLocation = location;
+    }
+    const finalLocation = {
+      latitude: Number(parsedLocation?.latitude),
+      longitude: Number(parsedLocation?.longitude),
+    };
+    if (
+      !finalLocation ||
+      isNaN(finalLocation.latitude) ||
+      isNaN(finalLocation.longitude)
+    ) {
+      return res.status(400).json({
+        message:
+          "حقل 'location' مطلوب ويجب أن يتضمن إحداثيات (latitude و longitude) رقمية صحيحة.",
+      });
+    }
+
     const newLead = new Lead({
       customerName,
       motherName,
       phone,
       addressText,
-      location,
+      location: finalLocation,
       homePhotoURL,
       notes,
       createdBy: req.user!.id,
@@ -215,8 +242,11 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
     });
 
     if (status === "installed") {
+      console.log("Installation details: ", installationDetails);
       lead.installationDetails = {
         ...installationDetails,
+        username: `Kan-${installationDetails?.cabinet}-${installationDetails?.poleNumber}-${installationDetails?.port}@Roz`,
+        password: "100",
         installDate: new Date(),
       };
     } else if (status === "rejected" || status === "postponed") {

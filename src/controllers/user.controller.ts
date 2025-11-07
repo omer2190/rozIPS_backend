@@ -52,34 +52,144 @@ export const getUsers = async (req: Request, res: Response) => {
   }
 };
 
-// جلب احصائية على مستخدم معين
+// جلب احصائية على مستخدم معين// جلب احصائية على مستخدم معين (نسخة محسّنة)
+
+// دالة مساعدة لحساب الطوابع الزمنية (timestamps)
+const getDates = () => {
+  const now = Date.now();
+  return {
+    dayAgo: new Date(now - 24 * 60 * 60 * 1000),
+    weekAgo: new Date(now - 7 * 24 * 60 * 60 * 1000),
+    monthAgo: new Date(now - 30 * 24 * 60 * 60 * 1000),
+  };
+};
+
 export const getUserStats = async (req: Request, res: Response) => {
   const userId = req.params.id;
+  const { dayAgo, weekAgo, monthAgo } = getDates();
+
   try {
-    console.log("userId: ", userId);
+    // 1. جلب بيانات المستخدم
     const user = await User.findById(userId).select("-password");
     if (!user) {
       return res.status(404).json({ message: "المستخدم غير موجود" });
     }
-    // جلب احصائية اضافية حسب الحاجة
-    // جلب عدد العملاء الذين تم اضافتهم من قبل هذا المستخدم ويجب ان تكون يوميا واسبوعيا وشهرية والكليلة
-    const dailyCount = await Lead.countDocuments({
-      $or: [{ createdBy: userId }, { assignedTo: userId }],
-      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-    });
-    const weeklyCount = await Lead.countDocuments({
-      $or: [{ createdBy: userId }, { assignedTo: userId }],
-      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-    });
-    const monthlyCount = await Lead.countDocuments({
-      $or: [{ createdBy: userId }, { assignedTo: userId }],
-      createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-    });
-    const totalCount = await Lead.countDocuments({
-      $or: [{ createdBy: userId }, { assignedTo: userId }],
-    });
 
-    res.json({ user, dailyCount, weeklyCount, monthlyCount, totalCount });
+    // 2. تحديد حالة (status) البحث الرئيسية
+    const statusToCount = "installed";
+    // user.role === "marketer"
+    //   ? "new"
+    //   :
+    // user.role == "installer"
+    //   ? "installed"
+    //   : // يجلب لكل الحالات للمستخدمين الآخرين
+    //     null;
+
+    // **3. استخدام Aggregation Pipeline لتحسين الأداء**
+    const matchCondition = {
+      $or: [{ createdBy: user._id }, { assignedTo: user._id }],
+    };
+
+    // نستخدم $facet لدمج عدة عمليات عد في استعلام واحد
+    const [statsResult] = await Lead.aggregate([
+      // المرحلة الأولى: تصفية السجلات حسب المستخدم (يجب أن تكون أول مرحلة لتحسين الأداء)
+      { $match: matchCondition },
+
+      // المرحلة الثانية: Facet لتقسيم العد حسب الفئات المطلوبة
+      {
+        $facet: {
+          // عد السجلات ذات حالة statusToCount (مثل new أو assigned)
+          statusCounts: [
+            // تصفية إضافية حسب الحالة المطلوبة
+            // user.role == "installer"
+            //   ? { $match: { status: statusToCount } }
+            //   : {
+            //       $match: {},
+            //     },
+            { $match: statusToCount ? { status: statusToCount } : {} },
+            {
+              $group: {
+                _id: null,
+                // العد الإجمالي
+                totalCount: { $sum: 1 },
+                // العد اليومي (باستخدام $cond لتطبيق شرط على الحقل createdAt)
+                dailyCount: {
+                  $sum: { $cond: [{ $gte: ["$createdAt", dayAgo] }, 1, 0] },
+                },
+                // العد الأسبوعي
+                weeklyCount: {
+                  $sum: { $cond: [{ $gte: ["$createdAt", weekAgo] }, 1, 0] },
+                },
+                // العد الشهري
+                monthlyCount: {
+                  $sum: { $cond: [{ $gte: ["$createdAt", monthAgo] }, 1, 0] },
+                },
+              },
+            },
+            { $project: { _id: 0 } }, // إزالة حقل _id
+          ],
+
+          // عد السجلات ذات حالة 'rejected'
+          rejectedCounts: [
+            { $match: { status: "rejected" } },
+            {
+              $group: {
+                _id: null,
+                // العد الإجمالي
+                totalFiledCount: { $sum: 1 },
+                // العد اليومي
+                dailyFiledCount: {
+                  $sum: { $cond: [{ $gte: ["$createdAt", dayAgo] }, 1, 0] },
+                },
+                // العد الأسبوعي
+                weeklyFiledCount: {
+                  $sum: { $cond: [{ $gte: ["$createdAt", weekAgo] }, 1, 0] },
+                },
+                // العد الشهري
+                monthlyFiledCount: {
+                  $sum: { $cond: [{ $gte: ["$createdAt", monthAgo] }, 1, 0] },
+                },
+              },
+            },
+            { $project: { _id: 0 } },
+          ],
+        },
+      },
+    ]);
+
+    // معالجة النتيجة وإرجاعها
+    // يتم دمج نتائج الـ statusCounts و rejectedCounts في كائن واحد
+    console.log("Stats Result: ", statsResult);
+    const finalStats = {
+      user,
+      ...(statsResult.statusCounts[0] || {}), // استخدام || {} في حالة عدم وجود نتائج (للتجنب undefined)
+      ...(statsResult.rejectedCounts[0] || {}),
+    };
+
+    // إرسال البيانات المجمعة
+    res.json(finalStats);
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send({
+      message: "خطأ في الخادم",
+      details: err.message,
+    });
+  }
+};
+
+// ايقاف حساب المستخدم او تفعيله
+export const toggleUserStatus = async (req: Request, res: Response) => {
+  const userId = req.params.id;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
+    }
+
+    user.isActive = !user.isActive;
+    await user.save();
+
+    res.json({ message: "تم تغيير حالة المستخدم بنجاح", user });
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send({
