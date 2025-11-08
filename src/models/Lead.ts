@@ -33,14 +33,14 @@ const LeadSchema = new Schema(
       type: {
         latitude: {
           type: Number,
-          required: true, // ⬅️ هذا هو سبب المشكلة
+          // required: true, // ⬅️ هذا هو سبب المشكلة
         },
         longitude: {
           type: Number,
-          required: true, // ⬅️ هذا هو سبب المشكلة
+          // required: true, // ⬅️ هذا هو سبب المشكلة
         },
       },
-      required: true, // قد يكون هذا الحقل مطلوبًا أيضاً
+      // required: true, // قد يكون هذا الحقل مطلوبًا أيضاً
     },
     homePhotoURL: { type: String },
     notes: { type: String },
@@ -74,14 +74,14 @@ export interface ILead extends Document {
     type: {
       latitude: {
         type: Number;
-        required: true; // ⬅️ هذا هو سبب المشكلة
+        // required: true; // ⬅️ هذا هو سبب المشكلة
       };
       longitude: {
         type: Number;
-        required: true; // ⬅️ هذا هو سبب المشكلة
+        // required: true; // ⬅️ هذا هو سبب المشكلة
       };
     };
-    required: true; // قد يكون هذا الحقل مطلوبًا أيضاً
+    // required: true; // قد يكون هذا الحقل مطلوبًا أيضاً
   };
   homePhotoURL?: string;
   notes?: string;
