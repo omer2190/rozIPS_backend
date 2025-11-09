@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 import Lead from "../models/Lead";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 // @route   POST api/users
 // @desc    Create a new user
@@ -46,6 +47,31 @@ export const getUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find(filter).select("-password");
     res.json(users);
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send({ message: "خطأ في الخادم" });
+  }
+};
+
+// @route   PUT api/users/:id
+// @desc    Update a user
+// @access  Private (Manager)
+export const updateUser = async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const { password, name, fcm } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
+    }
+
+    // تحديث بيانات المستخدم
+    if (password) user.password = password;
+    if (name) user.name = name;
+    if (fcm) user.fcm = fcm;
+
+    await user.save();
+    res.json({ message: "تم تحديث المستخدم بنجاح." });
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send({ message: "خطأ في الخادم" });

@@ -12,6 +12,7 @@ const UserSchema = new Schema({
   },
   phone: { type: String },
   isActive: { type: Boolean, default: true },
+  fcm: { type: String },
 });
 
 UserSchema.pre("save", async function (next) {
@@ -30,6 +31,7 @@ export interface IUser extends Document {
   role: "manager" | "marketer" | "installer";
   phone: string;
   isActive: boolean;
+  fcm?: string;
 }
 
 export default mongoose.model<IUser>("User", UserSchema);
