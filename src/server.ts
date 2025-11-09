@@ -8,6 +8,7 @@ import leadRoutes from "./routes/lead.routes";
 import userRoutes from "./routes/user.routes";
 import reportRoutes from "./routes/report.routes";
 import uploadRoutes from "./routes/upload.routes";
+import notificationRoutes from "./routes/notification.routes";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 const PORT = process.env.PORT || 5000;
 

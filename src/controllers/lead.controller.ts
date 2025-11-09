@@ -1,7 +1,8 @@
-import e, { Response } from "express";
+import { Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import Lead from "../models/Lead";
 import User from "../models/User";
+import NotificationService from "../services/notification.service";
 
 // @route   POST api/leads
 // @desc    Create a new lead
@@ -17,15 +18,10 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     }
     const homePhotoURL = req.file ? `/uploads/${req.file.filename}` : "hhhh";
 
-    // if (homePhotoURL == undefined) {
-    //   console.log("Home photo is required.: ", homePhotoURL);
-    //   return res.status(400).json({ message: "صورة المنزل مطلوبة." });
-    // }
-
     let parsedLocation: any;
     if (typeof location === "string") {
       try {
-        parsedLocation = JSON.parse(location); // ⬅️ تحليل السلسلة إلى كائن
+        parsedLocation = JSON.parse(location);
       } catch (e) {
         return res
           .status(400)
@@ -63,6 +59,18 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     });
 
     const lead = await newLead.save();
+
+    // Notify all managers and installers about the new lead
+    await NotificationService.sendToRoles(
+      ["manager", "installer"],
+      {
+        title: "عميل جديد",
+        body: `تمت إضافة عميل جديد "${lead.customerName}" بواسطة المسوق ${req.user?.name}.`,
+        leadId: lead.id,
+      },
+      [req.user!.id]
+    ); // Exclude the creator
+
     res.json(lead);
   } catch (err: any) {
     console.error(err.message);
@@ -140,7 +148,7 @@ export const assignLead = async (req: AuthRequest, res: Response) => {
         .json({ message: "مركب غير صالح.", installer: installer });
     }
 
-    const lead = await Lead.findById(req.params.id);
+    const lead = await Lead.findById(req.params.id).populate("createdBy");
     if (!lead) {
       return res.status(404).json({ message: "العميل غير موجود." });
     }
@@ -155,8 +163,23 @@ export const assignLead = async (req: AuthRequest, res: Response) => {
 
     await lead.save();
 
-    // TODO: Implement push notification simulation/service
-    console.log(`Lead ${lead.id} assigned to installer.`);
+    // Notify managers and the original marketer
+    await NotificationService.sendToRoles(["manager"], {
+      title: "تم قبول طلب",
+      body: `قبل المنصّب ${installer.name} طلب العميل ${lead.customerName}.`,
+      leadId: lead.id,
+    });
+
+    if (lead.createdBy) {
+      await NotificationService.sendToUser(
+        (lead.createdBy as any)._id.toString(),
+        {
+          title: "تم قبول طلبك",
+          body: `قبل المنصّب ${installer.name} طلب العميل ${lead.customerName} الذي أضفته.`,
+          leadId: lead.id,
+        }
+      );
+    }
 
     res.json(lead);
   } catch (err: any) {
@@ -172,11 +195,14 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
   const { status, rejectionReason } = req.body;
 
   try {
-    const lead = await Lead.findById(req.params.id);
+    const lead = await Lead.findById(req.params.id)
+      .populate("createdBy")
+      .populate("assignedTo");
     if (!lead) {
       return res.status(404).json({ message: "العميل غير موجود." });
     }
 
+    const oldStatus = lead.status;
     lead.status = status;
     lead.statusHistory.push({
       status,
@@ -188,6 +214,27 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
     }
 
     await lead.save();
+
+    // Notify marketer and installer about the status change by manager
+    const notificationPayload = {
+      title: `تحديث حالة الطلب`,
+      body: `قام المدير ${req.user?.name} بتغيير حالة طلب العميل ${lead.customerName} من "${oldStatus}" إلى "${status}".`,
+      leadId: lead.id,
+    };
+
+    if (lead.createdBy) {
+      await NotificationService.sendToUser(
+        (lead.createdBy as any)._id.toString(),
+        notificationPayload
+      );
+    }
+    if (lead.assignedTo) {
+      await NotificationService.sendToUser(
+        (lead.assignedTo as any)._id.toString(),
+        notificationPayload
+      );
+    }
+
     res.json(lead);
   } catch (err: any) {
     console.error(err.message);
@@ -222,7 +269,7 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
   const { status, installationDetails, rejectionReason } = req.body;
 
   try {
-    const lead = await Lead.findById(req.params.id);
+    const lead = await Lead.findById(req.params.id).populate("createdBy");
 
     if (!lead) {
       return res.status(404).json({ msg: "Lead not found." });
@@ -234,6 +281,7 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
         .json({ msg: "User not authorized to update this lead." });
     }
 
+    const oldStatus = lead.status;
     lead.status = status;
     lead.statusHistory.push({
       status,
@@ -254,6 +302,23 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
     }
 
     await lead.save();
+
+    // Notify managers and the original marketer
+    const notificationPayload = {
+      title: `تحديث من المنصّب`,
+      body: `قام المنصّب ${req.user?.name} بتحديث حالة طلب العميل ${lead.customerName} إلى "${status}".`,
+      leadId: lead.id,
+    };
+
+    await NotificationService.sendToRoles(["manager"], notificationPayload);
+
+    if (lead.createdBy) {
+      await NotificationService.sendToUser(
+        (lead.createdBy as any)._id.toString(),
+        notificationPayload
+      );
+    }
+
     res.json(lead);
   } catch (err: any) {
     console.error(err.message);
