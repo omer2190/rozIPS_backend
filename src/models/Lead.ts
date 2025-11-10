@@ -20,6 +20,7 @@ export interface IInstallationDetails {
   installPhotoURL?: string;
   installDate?: Date;
   profileType?: string;
+  notes?: string;
 }
 
 /** واجهة سجل الحالة (Status History) */
@@ -79,6 +80,7 @@ const InstallationDetailsSchema = new Schema(
     installPhotoURL: { type: String },
     installDate: { type: Date },
     profileType: { type: String },
+    notes: { type: String },
   },
   { _id: false }
 );
