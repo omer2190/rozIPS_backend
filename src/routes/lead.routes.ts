@@ -16,13 +16,11 @@ import {
   isMarketer,
   isInstaller,
 } from "../middlewares/auth.middleware";
-// import upload from "../middlewares/upload.middleware";
-
-import formData from "express-form-data";
+import upload from "../middlewares/upload.middleware";
 
 const router = Router();
 
-router.post("/", auth, formData.parse(), createLead);
+router.post("/", auth, upload.single("Photo"), createLead);
 router.get("/mine", auth, isMarketer, getMyLeads);
 router.get("/all", auth, isManager, getAllLeads);
 router.put("/:id/assign", auth, isInstaller, assignLead);

@@ -22,8 +22,15 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
+// جعلة يستقبل الاتصال من اي موقع ويب
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+
 // Serve static files from the "uploads" directory
-// app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/", (req, res) => res.send("API is running..."));
 
