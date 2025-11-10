@@ -9,6 +9,7 @@ import userRoutes from "./routes/user.routes";
 import reportRoutes from "./routes/report.routes";
 import uploadRoutes from "./routes/upload.routes";
 import notificationRoutes from "./routes/notification.routes";
+import { exec } from "child_process";
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ app.use(express.json());
 // Serve static files from the "uploads" directory
 // app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.get("/", (req, res) => res.send("API is running..."));
+app.get("/", (req, res) => res.send("API is running...123123213"));
 
 // Define Routes
 app.use("/api/auth", authRoutes);
@@ -33,6 +34,27 @@ app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+app.post("/api/deploy", (req, res) => {
+  // 1. (اختياري لكن موصى به) التحقق من الـ Secret Key من GitHub هنا لضمان الأمان
+
+  console.log("Received GitHub Webhook. Starting deployment...");
+
+  // 2. تشغيل سكربت النشر
+  exec(
+    "./deploy.sh",
+    { cwd: "/var/www/rozIPS_backend" },
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        return res.status(500).send("Deployment Failed");
+      }
+      console.log(`stdout: ${stdout}`);
+      console.error(`stderr: ${stderr}`);
+      res.status(200).send("Deployment script executed.");
+    }
+  );
+});
 
 const PORT = process.env.PORT || 5000;
 
