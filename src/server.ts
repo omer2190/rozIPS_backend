@@ -25,7 +25,7 @@ app.use(express.json());
 // Serve static files from the "uploads" directory
 // app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.get("/", (req, res) => res.send("API is running...123123213"));
+app.get("/", (req, res) => res.send("API is running..."));
 
 // Define Routes
 app.use("/api/auth", authRoutes);
