@@ -23,9 +23,12 @@ app.use(cors());
 app.use(express.json());
 
 // جعلة يستقبل الاتصال من اي موقع ويب
+
 app.use(
   cors({
-    origin: "*",
+    origin: "*", // يمكنك تعديل هذا إلى النطاقات المسموح بها فقط
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 
@@ -63,8 +66,10 @@ app.post("/api/deploy", (req, res) => {
   );
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`Server started on port ${PORT}`)
+);
 
 export default app;
