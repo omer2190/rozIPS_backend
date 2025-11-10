@@ -99,7 +99,7 @@ const LeadSchema = new Schema<ILead>(
   {
     // 📝 معلومات العميل الأساسية
     customerName: { type: String, required: true },
-    motherName: { type: String, required: true },
+    motherName: { type: String, default: "" },
     phone: { type: String, required: true, unique: true, index: true },
 
     // 📍 تفاصيل الموقع والعنوان
