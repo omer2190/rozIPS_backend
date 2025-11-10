@@ -28,7 +28,7 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     let parsedLocation: any;
     if (typeof location === "string") {
       try {
-        parsedLocation = JSON.parse(location);
+        parsedLocation = JSON.parse(location ?? "latitude:0,longitude:0");
       } catch (e) {
         return res
           .status(400)
