@@ -8,8 +8,15 @@ import NotificationService from "../services/notification.service";
 // @desc    Create a new lead
 // @access  Private (Marketer)
 export const createLead = async (req: AuthRequest, res: Response) => {
-  const { customerName, motherName, phone, addressText, location, notes } =
-    req.body;
+  const {
+    customerName,
+    motherName,
+    phone,
+    addressText,
+    location,
+    notes,
+    type,
+  } = req.body;
 
   try {
     const existingLead = await Lead.findOne({ phone });
@@ -55,6 +62,7 @@ export const createLead = async (req: AuthRequest, res: Response) => {
       notes,
       createdBy: req.user!.id,
       status: "new",
+      type: type || "جديد",
       statusHistory: [{ status: "new", changedBy: req.user!.id }],
     });
 

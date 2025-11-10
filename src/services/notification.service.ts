@@ -1,4 +1,5 @@
 import User, { IUser } from "../models/User";
+import { sendNotification } from "../controllers/notificationController";
 
 // In a real app, this would integrate with a service like FCM, APN, or a WebSocket service.
 // For now, we will simulate the notification sending by logging to the console.
@@ -30,8 +31,12 @@ class NotificationService {
           console.log(`Lead ID: ${payload.leadId}`);
         }
         console.log(`--------------------------`);
-        // Here you would add the actual push notification sending logic
-        // e.g., await fcm.send({ token: user.fcmToken, notification: { ... } });
+        await sendNotification(
+          userId,
+          payload.title,
+          payload.body,
+          payload.leadId
+        );
       }
     } catch (error) {
       console.error(`Failed to send notification to user ${userId}`, error);
