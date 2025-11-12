@@ -86,6 +86,49 @@ export const createLead = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// @route   PUT api/leads/:id
+export const updateLead = async (req: AuthRequest, res: Response) => {
+  const leadId = req.params.id;
+  const {
+    customerName,
+    motherName,
+    phone,
+    addressText,
+    location,
+    notes,
+    type,
+  } = req.body;
+
+  try {
+    const lead = await Lead.findById(leadId);
+    if (!lead) {
+      return res.status(404).json({ message: "العميل غير موجود." });
+    }
+
+    // Check if the user is authorized to update the lead
+    // if (lead.createdBy.toString() !== req.user!.id && req.user!.role !== "manager" ) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "المستخدم غير مصرح له بتحديث هذا العميل." });
+    // }
+
+    // Update lead fields
+    lead.customerName = customerName || lead.customerName;
+    lead.motherName = motherName || lead.motherName;
+    lead.phone = phone || lead.phone;
+    lead.addressText = addressText || lead.addressText;
+    lead.location = location || lead.location;
+    lead.notes = notes || lead.notes;
+    lead.type = type || lead.type;
+
+    await lead.save();
+    res.json(lead);
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send({ message: "خطأ في الخادم" });
+  }
+};
+
 // @route   GET api/leads/mine
 // @desc    Get all leads created by the current marketer
 // @access  Private (Marketer)
@@ -160,6 +203,11 @@ export const assignLead = async (req: AuthRequest, res: Response) => {
     if (!lead) {
       return res.status(404).json({ message: "العميل غير موجود." });
     }
+    if (lead.assignedTo || lead.status === "assigned") {
+      return res
+        .status(400)
+        .json({ message: "تم تعيين هذا الطلب بالفعل لمركب آخر." });
+    }
 
     lead.assignedTo = installerId;
     lead.status = "assigned";
@@ -219,6 +267,7 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
     });
     if (status === "rejected" || status === "postponed") {
       lead.rejectionReason = rejectionReason;
+      lead.assignedTo = undefined; // Unassign installer on rejection or postponement
     }
 
     await lead.save();
@@ -280,13 +329,13 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
     const lead = await Lead.findById(req.params.id).populate("createdBy");
 
     if (!lead) {
-      return res.status(404).json({ msg: "Lead not found." });
+      return res.status(404).json({ message: "العميل غير موجود." });
     }
 
     if (lead.assignedTo?.toString() !== req.user!.id) {
       return res
         .status(403)
-        .json({ msg: "User not authorized to update this lead." });
+        .json({ message: "المستخدم غير مصرح له بتحديث هذا العميل." });
     }
 
     const oldStatus = lead.status;
