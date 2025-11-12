@@ -9,6 +9,7 @@ import {
   getInstallerTasks,
   getMyTasks,
   getLeadCounts,
+  updateLead,
 } from "../controllers/lead.controller";
 import {
   auth,
@@ -23,6 +24,7 @@ const router = Router();
 router.post("/", auth, upload.single("Photo"), createLead);
 router.get("/mine", auth, isMarketer, getMyLeads);
 router.get("/all", auth, isManager, getAllLeads);
+router.put("/:id", auth, updateLead);
 router.put("/:id/assign", auth, isInstaller, assignLead);
 router.put("/:id/status", auth, isManager, updateLeadStatus);
 router.get("/tasks", auth, isInstaller, getInstallerTasks);
