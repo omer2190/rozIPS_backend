@@ -100,7 +100,9 @@ export const updateLead = async (req: AuthRequest, res: Response) => {
   } = req.body;
 
   try {
-    const lead = await Lead.findById(leadId);
+    const lead = await Lead.findById(leadId)
+      .populate("createdBy")
+      .populate("assignedTo");
     if (!lead) {
       return res.status(404).json({ message: "العميل غير موجود." });
     }
