@@ -6,7 +6,7 @@ import path from "path";
 if (!admin.apps.length) {
   const serviceAccountPath = path.resolve(
     __dirname,
-    "../../rpzaps-firebase-adminsdk-fbsvc-807622884e.json"
+    "/var/www/rozIPS_backend/rpzaps-firebase-adminsdk-fbsvc-807622884e.json"
   );
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccountPath),
