@@ -156,7 +156,7 @@ export const getMyLeads = async (req: AuthRequest, res: Response) => {
 // @desc    Get all leads with filtering
 // @access  Private (Manager)
 export const getAllLeads = async (req: AuthRequest, res: Response) => {
-  const { status, marketerId, installerId, searchKeyword } = req.query;
+  const { status, marketerId, installerId, searchKeyword, fluter } = req.query;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 25;
   const skip = (page - 1) * limit;
@@ -167,6 +167,15 @@ export const getAllLeads = async (req: AuthRequest, res: Response) => {
   // if (marketerId) filter.createdBy = marketerId;
   if (installerId) filter.assignedTo = installerId;
   if (marketerId) filter.createdBy = marketerId;
+  // يفلتر النتائج بناءً على الفلتر المحدد كحالة او نوع للطلب
+  if (fluter) {
+    if (fluter === "جديد" || fluter === "صيانة") {
+      filter.type = fluter;
+    } else {
+      filter.status = fluter;
+    }
+  }
+
   if (searchKeyword) {
     filter.$or = [
       { customerName: { $regex: searchKeyword, $options: "i" } },
@@ -433,11 +442,19 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
     });
     const installedLeads = await Lead.countDocuments({
       ...filter,
-      status: "installed",
+      status: { $in: ["installed", "completed"] },
     });
     const rejectedLeads = await Lead.countDocuments({
       ...filter,
       status: "rejected",
+    });
+    const newLeadsAll = await Lead.countDocuments({
+      ...filter,
+      type: "جديد",
+    });
+    const maintenanceLeads = await Lead.countDocuments({
+      ...filter,
+      type: "صيانة",
     });
 
     res.json({
@@ -446,6 +463,8 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
       installedLeads,
       rejectedLeads,
       newLeads,
+      newLeadsAll,
+      maintenanceLeads,
     });
   } catch (err: any) {
     console.error(err.message);
