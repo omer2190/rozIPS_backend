@@ -286,7 +286,9 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
     // Notify marketer and installer about the status change by manager
     const notificationPayload = {
       title: `تحديث حالة الطلب`,
-      body: `قام المدير ${req.user?.name} بتغيير حالة طلب العميل ${lead.customerName} من "${oldStatus}" إلى "${status}".`,
+      body: `قام المدير ${req.user?.name} بتغيير حالة طلب العميل ${
+        lead.customerName
+      } من "${translateStatus(oldStatus)}" إلى "${translateStatus(status)}".`,
       leadId: lead.id,
     };
 
@@ -308,6 +310,19 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
     console.error(err.message);
     res.status(500).send({ message: "خطأ في الخادم" });
   }
+};
+
+// ترجمة الحالة الحالية
+export const translateStatus = (status: string) => {
+  const statusMap: { [key: string]: string } = {
+    new: "جديد",
+    assigned: "مُعيّن",
+    installed: "مثبّت",
+    rejected: "مرفوض",
+    postponed: "مؤجل",
+  };
+
+  return statusMap[status] || status;
 };
 
 // @route   GET api/leads/tasks
@@ -374,7 +389,9 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
     // Notify managers and the original marketer
     const notificationPayload = {
       title: `تحديث من المنصّب`,
-      body: `قام المنصّب ${req.user?.name} بتحديث حالة طلب العميل ${lead.customerName} إلى "${status}".`,
+      body: `قام المنصّب ${req.user?.name} بتحديث حالة طلب العميل ${
+        lead.customerName
+      } إلى "${translateStatus(status)}".`,
       leadId: lead.id,
     };
 
