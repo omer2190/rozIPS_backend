@@ -16,6 +16,7 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     location,
     notes,
     type,
+    equipmentType,
   } = req.body;
 
   try {
@@ -64,6 +65,7 @@ export const createLead = async (req: AuthRequest, res: Response) => {
       status: "new",
       type: type || "جديد",
       statusHistory: [{ status: "new", changedBy: req.user!.id }],
+      equipmentType,
     });
 
     const lead = await newLead.save();
@@ -97,6 +99,7 @@ export const updateLead = async (req: AuthRequest, res: Response) => {
     location,
     notes,
     type,
+    equipmentType,
   } = req.body;
 
   try {
@@ -122,6 +125,7 @@ export const updateLead = async (req: AuthRequest, res: Response) => {
     lead.location = location || lead.location;
     lead.notes = notes || lead.notes;
     lead.type = type || lead.type;
+    lead.equipmentType = equipmentType || lead.equipmentType;
 
     await lead.save();
     res.json(lead);
@@ -436,7 +440,7 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
 
     let filter: any = {};
 
-    if (user.role === "manager") {
+    if (user.role === "manager" || user.role === "owner") {
       // Managers can see counts for all leads, so no filter is applied.
     } else if (user.role === "marketer") {
       // Marketers can see counts for leads they created.

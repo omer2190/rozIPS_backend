@@ -25,6 +25,9 @@ export const auth = async (
     if (!user) {
       return res.status(401).json({ message: "المستخدم غير موجود" });
     }
+    if (!user.isActive) {
+      return res.status(403).json({ message: "المستخدم غير نشط" });
+    }
     req.user = user;
     next();
   } catch (err) {
@@ -37,7 +40,7 @@ export const isManager = (
   res: Response,
   next: NextFunction
 ) => {
-  if (req.user && req.user.role === "manager") {
+  if (req.user && (req.user.role === "manager" || req.user.role === "owner")) {
     next();
   } else {
     res.status(403).json({ message: "الوصول مرفوض. يتطلب دور المدير." });

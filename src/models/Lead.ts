@@ -45,6 +45,7 @@ export interface ILead extends Document {
   // ⚙️ حالة العميل وتصنيفه
   status: "new" | "assigned" | "installed" | "rejected" | "completed";
   type: "جديد" | "صيانة";
+  equipmentType?: string;
   rejectionReason?: string;
 
   // 👷‍♂️ تفاصيل الموظفين والوقت
@@ -121,6 +122,7 @@ const LeadSchema = new Schema<ILead>(
       default: "جديد",
     },
     rejectionReason: { type: String },
+    equipmentType: { type: String },
 
     // 👷‍♂️ تفاصيل الموظفين والوقت
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },

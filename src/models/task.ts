@@ -9,6 +9,7 @@ export interface ITask extends Document {
   createdBy: Types.ObjectId;
   status: "pending" | "in-progress" | "completed" | "cancelled";
   image?: string;
+  note?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,7 @@ const TaskSchema = new Schema<ITask>(
       enum: ["pending", "in-progress", "completed", "cancelled"],
       default: "pending",
     },
+    note: { type: String },
   },
   { timestamps: true }
 );

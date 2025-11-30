@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../models/User";
 import Lead from "../models/Lead";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import bcrypt from "bcryptjs";
 
 // @route   POST api/users
 // @desc    Create a new user
@@ -57,8 +58,8 @@ export const getUsers = async (req: Request, res: Response) => {
 // @desc    Update a user
 // @access  Private (Manager)
 export const updateUser = async (req: AuthRequest, res: Response) => {
-  const userId = req.user!.id;
-  const { password, name, fcm } = req.body;
+  const userId = req.params.id;
+  const { password, name, fcm, role, isActive } = req.body;
   try {
     const user = await User.findById(userId);
     if (!user) {
@@ -66,12 +67,14 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     }
 
     // تحديث بيانات المستخدم
-    if (password) user.password = password;
+    if (password) user.password = bcrypt.hashSync(password, 10);
     if (name) user.name = name;
     if (fcm) user.fcm = fcm;
+    if (role) user.role = role;
+    if (isActive !== undefined) user.isActive = isActive;
 
     await user.save();
-    res.json({ message: "تم تحديث المستخدم بنجاح." });
+    res.json(user);
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send({ message: "خطأ في الخادم" });

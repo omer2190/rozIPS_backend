@@ -7,7 +7,7 @@ const UserSchema = new Schema({
   name: { type: String, required: true },
   role: {
     type: String,
-    enum: ["manager", "marketer", "installer"],
+    enum: ["manager", "marketer", "installer", "owner"],
     required: true,
   },
   phone: { type: String },
@@ -28,7 +28,7 @@ export interface IUser extends Document {
   username: string;
   password?: string;
   name: string;
-  role: "manager" | "marketer" | "installer";
+  role: "manager" | "marketer" | "installer" | "owner";
   phone: string;
   isActive: boolean;
   fcm?: string;

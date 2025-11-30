@@ -5,7 +5,7 @@ import NotificationService from "../services/notification.service";
 
 export const createTask = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, number, address, price, assignedTo } = req.body;
+    const { name, number, address, price, assignedTo, note } = req.body;
     const user = req.user;
     if (!name || !number || !address || !price || !assignedTo) {
       return res.status(400).json({ message: "All fields are required" });
@@ -16,6 +16,7 @@ export const createTask = async (req: AuthRequest, res: Response) => {
       address,
       price,
       assignedTo,
+      note,
       createdBy: user?.id,
     });
     await newTask.save();
@@ -74,10 +75,10 @@ export const getTaskById = async (req: AuthRequest, res: Response) => {
 export const updateTask = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, number, address, price, assignedTo } = req.body;
+    const { name, number, address, price, assignedTo, note } = req.body;
     const updatedTask = await Task.findByIdAndUpdate(
       id,
-      { name, number, address, price, assignedTo },
+      { name, number, address, price, assignedTo, note },
       { new: true }
     );
     if (!updatedTask) {
