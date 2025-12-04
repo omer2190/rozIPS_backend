@@ -480,7 +480,7 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
     });
     const notification = await Notification.find({
       recipient: user.id,
-      isRead: false,
+      read: false,
     });
 
     res.json({
