@@ -3,6 +3,7 @@ import { AuthRequest } from "../middlewares/auth.middleware";
 import Lead from "../models/Lead";
 import User from "../models/User";
 import NotificationService from "../services/notification.service";
+import Notification from "../models/notification";
 
 // @route   POST api/leads
 // @desc    Create a new lead
@@ -42,16 +43,16 @@ export const createLead = async (req: AuthRequest, res: Response) => {
       latitude: Number(parsedLocation?.latitude),
       longitude: Number(parsedLocation?.longitude),
     };
-    if (
-      !finalLocation ||
-      isNaN(finalLocation.latitude) ||
-      isNaN(finalLocation.longitude)
-    ) {
-      return res.status(400).json({
-        message:
-          "حقل 'location' مطلوب ويجب أن يتضمن إحداثيات (latitude و longitude) رقمية صحيحة.",
-      });
-    }
+    // if (
+    //   !finalLocation ||
+    //   isNaN(finalLocation.latitude) ||
+    //   isNaN(finalLocation.longitude)
+    // ) {
+    //   return res.status(400).json({
+    //     message:
+    //       "حقل 'location' مطلوب ويجب أن يتضمن إحداثيات (latitude و longitude) رقمية صحيحة.",
+    //   });
+    // }
 
     const newLead = new Lead({
       customerName,
@@ -477,6 +478,10 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
       ...filter,
       type: "صيانة",
     });
+    const notification = await Notification.find({
+      recipient: user.id,
+      isRead: false,
+    });
 
     res.json({
       totalLeads,
@@ -486,6 +491,7 @@ export const getLeadCounts = async (req: AuthRequest, res: Response) => {
       newLeads,
       newLeadsAll,
       maintenanceLeads,
+      unreadNotifications: notification.length,
     });
   } catch (err: any) {
     console.error(err.message);

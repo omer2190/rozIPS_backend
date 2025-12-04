@@ -10,6 +10,7 @@ export interface ITask extends Document {
   status: "pending" | "in-progress" | "completed" | "cancelled";
   image?: string;
   note?: string;
+  completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +32,7 @@ const TaskSchema = new Schema<ITask>(
       ref: "User",
       required: true,
     },
+    completedAt: { type: Date },
     status: {
       type: String,
       enum: ["pending", "in-progress", "completed", "cancelled"],

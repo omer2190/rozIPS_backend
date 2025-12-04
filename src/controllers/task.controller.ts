@@ -35,9 +35,19 @@ export const createTask = async (req: AuthRequest, res: Response) => {
 
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, search } = req.query;
     const user = req.user;
-    const tasks = await Task.find()
+    const tasks = await Task.find(
+      search
+        ? {
+            $or: [
+              { name: { $regex: search, $options: "i" } },
+              { number: { $regex: search, $options: "i" } },
+              { address: { $regex: search, $options: "i" } },
+            ],
+          }
+        : {}
+    )
       .sort({ createdAt: -1 })
       .populate("assignedTo")
       .skip((+page - 1) * +limit)
@@ -103,15 +113,17 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid status" });
     }
     let image;
+    let completedAt;
     if (status === "completed") {
       // دمج الرابط الخاص بالصورة المرسلة مع اسم الملف
       image = `${req.protocol}://${req.get("host")}/uploads/${
         req.file?.filename
       }`;
+      completedAt = new Date();
     }
     const updatedTask = await Task.findByIdAndUpdate(
       id,
-      { status, image },
+      { status, image, completedAt },
       { new: true }
     );
     if (!updatedTask) {

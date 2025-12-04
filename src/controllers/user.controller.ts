@@ -67,7 +67,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     }
 
     // تحديث بيانات المستخدم
-    if (password) user.password = bcrypt.hashSync(password, 10);
+    if (password) user.password = password;
     if (name) user.name = name;
     if (fcm) user.fcm = fcm;
     if (role) user.role = role;

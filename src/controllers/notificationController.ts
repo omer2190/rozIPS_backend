@@ -12,6 +12,11 @@ export const getMyNotifications = async (req: AuthRequest, res: Response) => {
     const notifications = await Notification.find({ recipient: req.user!.id })
       .sort({ createdAt: -1 })
       .limit(20); // Limit to last 20 notifications
+    //اجعل الاشعارات مقروءة
+    await Notification.updateMany(
+      { recipient: req.user!.id, read: false },
+      { $set: { read: true } }
+    );
 
     res.json(notifications);
   } catch (err: any) {
