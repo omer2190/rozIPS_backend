@@ -40,8 +40,8 @@ export const createLead = async (req: AuthRequest, res: Response) => {
       parsedLocation = location;
     }
     const finalLocation = {
-      latitude: Number(parsedLocation?.latitude),
-      longitude: Number(parsedLocation?.longitude),
+      latitude: Number(parsedLocation?.latitude) ?? 0,
+      longitude: Number(parsedLocation?.longitude) ?? 0,
     };
     // if (
     //   !finalLocation ||
