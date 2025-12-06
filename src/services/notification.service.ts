@@ -22,24 +22,30 @@ class NotificationService {
   ): Promise<void> {
     try {
       const user = await User.findById(userId);
-      if (user) {
-        console.log(`--- Sending Notification ---`);
-        console.log(`Recipient: ${user.name} (${user.username})`);
-        console.log(`Title: ${payload.title}`);
-        console.log(`Body: ${payload.body}`);
-        if (payload.leadId) {
-          console.log(`Lead ID: ${payload.leadId}`);
-        }
-        console.log(`--------------------------`);
-        await sendNotification(
-          userId,
-          payload.title,
-          payload.body,
-          payload.leadId
+      if (!user) {
+        console.warn(
+          `User with ID ${userId} not found. Skipping notification.`
         );
+        return;
       }
+
+      console.log(`--- Sending Notification ---`);
+      console.log(`Recipient: ${user.name} (${user.username})`);
+      console.log(`Title: ${payload.title}`);
+      console.log(`Body: ${payload.body}`);
+      if (payload.leadId) {
+        console.log(`Lead ID: ${payload.leadId}`);
+      }
+      console.log(`--------------------------`);
+
+      await sendNotification(
+        userId,
+        payload.title,
+        payload.body,
+        payload.leadId
+      );
     } catch (error) {
-      console.error(`Failed to send notification to user ${userId}`, error);
+      console.error(`Failed to send notification to user ${userId}:`, error);
     }
   }
 

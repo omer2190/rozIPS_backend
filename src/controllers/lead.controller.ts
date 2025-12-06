@@ -30,7 +30,7 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     let parsedLocation: any;
     if (typeof location === "string") {
       try {
-        parsedLocation = JSON.parse(location ?? "latitude:0,longitude:0");
+        parsedLocation = JSON.parse(location);
       } catch (e) {
         return res
           .status(400)
@@ -39,9 +39,11 @@ export const createLead = async (req: AuthRequest, res: Response) => {
     } else {
       parsedLocation = location;
     }
+
+    // Support both lat/lng and latitude/longitude formats
     const finalLocation = {
-      latitude: Number(parsedLocation?.latitude) ?? 0,
-      longitude: Number(parsedLocation?.longitude) ?? 0,
+      latitude: Number(parsedLocation?.latitude || parsedLocation?.lat || 0),
+      longitude: Number(parsedLocation?.longitude || parsedLocation?.lng || 0),
     };
     // if (
     //   !finalLocation ||
@@ -375,7 +377,36 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
 
     const oldStatus = lead.status;
     lead.status = status;
-    lead.location = location;
+
+    // Update location if provided
+    if (location) {
+      let parsedLocation: any;
+      if (typeof location === "string") {
+        try {
+          parsedLocation = JSON.parse(location);
+        } catch (e) {
+          parsedLocation = location;
+        }
+      } else {
+        parsedLocation = location;
+      }
+
+      // Support both lat/lng and latitude/longitude formats
+      lead.location = {
+        latitude: Number(
+          parsedLocation?.latitude ||
+            parsedLocation?.lat ||
+            lead.location?.latitude ||
+            0
+        ),
+        longitude: Number(
+          parsedLocation?.longitude ||
+            parsedLocation?.lng ||
+            lead.location?.longitude ||
+            0
+        ),
+      };
+    }
 
     lead.statusHistory.push({
       status,
