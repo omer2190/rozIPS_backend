@@ -354,7 +354,7 @@ export const getInstallerTasks = async (req: AuthRequest, res: Response) => {
 // @desc    Submit installation details
 // @access  Private (Installer)
 export const submitInstallation = async (req: AuthRequest, res: Response) => {
-  const { status, installationDetails, rejectionReason } = req.body;
+  const { status, installationDetails, rejectionReason, location } = req.body;
 
   try {
     const lead = await Lead.findById(req.params.id).populate("createdBy");
@@ -369,8 +369,14 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
         .json({ message: "المستخدم غير مصرح له بتحديث هذا العميل." });
     }
 
+    if (req.file) {
+      lead.homePhotoURL = req.file.filename;
+    }
+
     const oldStatus = lead.status;
     lead.status = status;
+    lead.location = location;
+
     lead.statusHistory.push({
       status,
       changedBy: req.user!.id,

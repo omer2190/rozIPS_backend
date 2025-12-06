@@ -29,7 +29,13 @@ router.put("/:id/assign", auth, isInstaller, assignLead);
 router.put("/:id/status", auth, isManager, updateLeadStatus);
 router.get("/tasks", auth, isInstaller, getInstallerTasks);
 router.get("/my", auth, isInstaller, getMyTasks);
-router.put("/:id/install", auth, isInstaller, submitInstallation);
+router.put(
+  "/:id/install",
+  auth,
+  isInstaller,
+  upload.single("image"),
+  submitInstallation
+);
 router.get("/counts", auth, getLeadCounts);
 
 export default router;
