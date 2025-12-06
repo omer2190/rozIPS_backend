@@ -372,7 +372,9 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
     }
 
     if (req.file) {
-      lead.homePhotoURL = req.file.filename;
+      lead.homePhotoURL = req.file
+        ? `/uploads/${req.file.filename}`
+        : lead.homePhotoURL;
     }
 
     const oldStatus = lead.status;
@@ -421,6 +423,7 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
         username: `Kan-${installationDetails?.cabinet}-${installationDetails?.poleNumber}-${installationDetails?.port}@Roz`,
         password: "100",
         installDate: new Date(),
+        notes: installationDetails?.notes || "",
       };
     } else if (status === "rejected" || status === "postponed") {
       lead.rejectionReason = rejectionReason;
