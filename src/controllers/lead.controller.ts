@@ -417,13 +417,28 @@ export const submitInstallation = async (req: AuthRequest, res: Response) => {
     });
 
     if (status === "installed") {
-      console.log("Installation details: ", installationDetails);
+      // Parse installationDetails if it's a string (happens with multipart/form-data)
+      let parsedInstallationDetails = installationDetails;
+      if (typeof installationDetails === "string") {
+        try {
+          parsedInstallationDetails = JSON.parse(installationDetails);
+        } catch (e) {
+          console.error("Error parsing installationDetails:", e);
+        }
+      }
+
+      console.log("Parsed Installation details: ", parsedInstallationDetails);
+
       lead.installationDetails = {
-        ...installationDetails,
-        username: `Kan-${installationDetails?.cabinet}-${installationDetails?.poleNumber}-${installationDetails?.port}@Roz`,
+        cabinet: parsedInstallationDetails?.cabinet || "",
+        port: parsedInstallationDetails?.port || "",
+        serial: parsedInstallationDetails?.serial || "",
+        poleNumber: parsedInstallationDetails?.poleNumber || "",
+        profileType: parsedInstallationDetails?.profileType || "",
+        notes: parsedInstallationDetails?.notes || "",
+        username: `Kan-${parsedInstallationDetails?.cabinet}-${parsedInstallationDetails?.poleNumber}-${parsedInstallationDetails?.port}@Roz`,
         password: "100",
         installDate: new Date(),
-        notes: installationDetails?.notes || "",
       };
     } else if (status === "rejected" || status === "postponed") {
       lead.rejectionReason = rejectionReason;
